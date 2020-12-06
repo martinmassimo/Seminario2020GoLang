@@ -33,16 +33,9 @@ _Estas instrucciones te permitirán obtener una copia del proyecto en funcionami
 git clone https://github.com/martinmassimo/Seminario2020GoLang.git
 ```
 
-### 3. Instalar dependencias en el directorio del repositorio clonado
-
-Para instalar las depencias del proyectos siguiente comando para que se intale:
+### 3. Comandos Go para ejecutar el proyecto e inicializar la BD de SQLite
 ```
-go install
-```
-
-### 4. Comandos Go para ejecutar el proyecto e inicializar la BD de SQLite
-```
-go run .\cmd\housesForSale\housesForSale.go -config ./config/config.yaml
+go run ./cmd/housesForSale/housesForSale.go -config ./config/config.yaml
 ```
 
 ### * Opcionalmente puede descargar Postman para realizar pruebas de funcionamiento
