@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"strconv"
-	// "encoding/json"
-	// "strings"
 )
 
 // HTTPService ...
@@ -75,8 +73,6 @@ func addHouse(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var h Houses
 		if c.BindJSON(&h) == nil {
-			// dec := json.NewDecoder(&h)
-			// err := dec.Decode(&h)
 			c.JSON(http.StatusOK, gin.H{
 				"houses": s.AddHouse(h),
 			})
