@@ -33,7 +33,7 @@ _Estas instrucciones te permitirán obtener una copia del proyecto en funcionami
 git clone https://github.com/martinmassimo/Seminario2020GoLang.git
 ```
 
-### 3. Comandos Go para ejecutar el proyecto e inicializar la BD de SQLite
+### 3. Ingresar al directorio del proyecto y ejecutar los Comandos Go para inicializar el proyecto y la BD SQLite
 ```
 go run ./cmd/housesForSale/housesForSale.go -config ./config/config.yaml
 ```
