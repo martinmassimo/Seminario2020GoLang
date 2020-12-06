@@ -1,16 +1,15 @@
-package housesForSale
+package main
 
 import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/martinmassimo/Seminario2020GoLang/internal/config"
 	"github.com/martinmassimo/Seminario2020GoLang/internal/database"
-	"github.com/martinmassimo/Seminario2020GoLang/internal/service/chat"
+	"github.com/martinmassimo/Seminario2020GoLang/internal/service/houses"
 )
 
 func main() {
@@ -27,8 +26,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	service, _ := chat.New(db, cfg)
-	httpService := chat.NewHTTPTransport(service)
+	if err := createSchema(db); err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	service, _ := houses.New(db, cfg)
+	httpService := houses.NewHTTPTransport(service)
 
 	r := gin.Default()
 	httpService.Register(r)
@@ -36,9 +40,12 @@ func main() {
 }
 
 func createSchema(db *sqlx.DB) error {
-	schema := `CREATE TABLE IF NOT EXISTS messages (
+	schema := `CREATE TABLE IF NOT EXISTS houses (
 		id integer primary key autoincrement,
-		text varchar);`
+		name   varchar,
+		status varchar,
+		rooms  int,
+		price  float);`
 
 	// execute a query on the server
 	_, err := db.Exec(schema)
@@ -46,9 +53,42 @@ func createSchema(db *sqlx.DB) error {
 		return err
 	}
 
-	// or, you can use MustExec, which panics on error
-	insertMessage := `INSERT INTO messages (text) VALUES (?)`
-	s := fmt.Sprintf("Message number %v", time.Now().Nanosecond())
-	db.MustExec(insertMessage, s)
+	insertHouse := `INSERT INTO houses (name, status, rooms, price) VALUES (?,?,?,?)`
+	name := "Las Ceibos"
+	status := "For Sale"
+	rooms := 1
+	price := 70.500
+	db.MustExec(insertHouse, name, status, rooms, price)
+	
+	name = "Las Ceibos"
+	status = "For Sale"
+	rooms = 1
+	price = 70.500
+	db.MustExec(insertHouse, name, status, rooms, price)
+
+
+	name = "Los Alamos"
+	status = "For Sale"
+	rooms = 3
+	price = 100.000
+	db.MustExec(insertHouse, name, status, rooms, price)
+
+	name = "Los Aroldos"
+	status = "For Sale"
+	rooms = 2
+	price = 73.500
+	db.MustExec(insertHouse, name, status, rooms, price)
+	
+	name = "Los Naranjos"
+	status = "For Sale"
+	rooms = 4
+	price = 150.600
+	db.MustExec(insertHouse, name, status, rooms, price)
+
+	name = "Las Acacias"
+	status = "For Sale"
+	rooms = 5
+	price = 200.00
+	db.MustExec(insertHouse, name, status, rooms, price)
 	return nil
 }
