@@ -18,11 +18,11 @@ type Houses struct {
 
 // Service ...
 type Service interface {
-	FindByID(int) Houses
-	FindAll() []*Houses
-	AddHouse(Houses) error
-	DeleteByID(int) error
-	SetSoldByID(int) error
+	FindByID(int) (Houses, error)
+	FindAll() ([]*Houses, error)
+	AddHouse(Houses) (int64, error)
+	DeleteByID(int) (int64,error)
+	SetSoldByID(int) (int64,error)
 }
 
 type service struct {
@@ -35,59 +35,53 @@ func New(db *sqlx.DB, c *config.Config) (Service, error) {
 	return service{db, c}, nil
 }
 
-func (s service) AddHouse(h Houses) error {
+func (s service) AddHouse(h Houses) (int64, error) {
 	insertHouse := `INSERT INTO houses (name, status, rooms, price) VALUES (?,?,?,?)`
 	name := h.Name
 	status := h.Status
 	rooms := h.Rooms
 	price := h.Price
-	s.db.MustExec(insertHouse, name, status, rooms, price)
-	return nil
+	id, err := s.db.MustExec(insertHouse, name, status, rooms, price).LastInsertId()
+	return id, err
 }
 
-func (s service) FindByID(ID int) Houses{	
+func (s service) FindByID(ID int) (Houses,error){	
 	var house Houses
 	houses := []Houses{}
     err := s.db.Select(&houses, "SELECT * FROM houses WHERE id=$1", ID)
-	checkErr(err)
-	house = houses[0]
-	return house
-}
-
-func (s service) FindAll() []*Houses {
-	var list []*Houses
-	if err := s.db.Select(&list, "SELECT * FROM houses"); err != nil {
-		panic(err)
+	if err != nil {	return house, err}
+	if (len(houses)>0){
+		house = houses[0]
 	}
-	return list
+	return house, err
 }
 
-func (s service) DeleteByID(ID int) error {
+func (s service) FindAll() ([]*Houses,error) {
+	var list []*Houses
+	err := s.db.Select(&list, "SELECT * FROM houses")
+	return list, err
+}
+
+func (s service) DeleteByID(ID int) (int64, error) {
 	q := "DELETE FROM houses WHERE id=?"
 	stmt, err := s.db.Prepare(q)
-	checkErr(err)
+	if err != nil {	return 0, err }
 	res, err := stmt.Exec(strconv.Itoa(ID))
-	checkErr(err)
+	if err != nil {	return 0,err }
 	affect, err := res.RowsAffected()
-	checkErr(err)
+	if err != nil {	return affect, err }
 	fmt.Println(affect)
-	return nil
+	return affect, err
 }
 
-func (s service) SetSoldByID(ID int) error {
+func (s service) SetSoldByID(ID int)  (int64,error) {
 	q := "UPDATE houses SET status='Sold' WHERE id=? AND status='For Sale'"
 	stmt, err := s.db.Prepare(q)
-	checkErr(err)
+	if err != nil {	return 0, err }
 	res, err := stmt.Exec(strconv.Itoa(ID))
-	checkErr(err)
+	if err != nil {	return 0, err }
 	affect, err := res.RowsAffected()
-	checkErr(err)
+	if err != nil {	return 0, err }
 	fmt.Println(affect)
-	return nil
-}
-
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
-	}
+	return affect, err
 }
