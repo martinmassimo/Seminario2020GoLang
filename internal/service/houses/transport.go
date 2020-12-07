@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"fmt"
 )
 
 // HTTPService ...
@@ -62,19 +63,34 @@ func makeEndpoints(s Service) []*endpoint {
 }
 
 func getAll(s Service) gin.HandlerFunc {
+
 	return func(c *gin.Context) {
+		houses,err := s.FindAll()
+			if err != nil {
+				c.JSON(http.StatusBadRequest,gin.H{
+					"error": "Bad Request",
+				})
+			return
+			}
 		c.JSON(http.StatusOK, gin.H{
-			"houses": s.FindAll(),
+			"houses": houses,
 		})
 	}
 }
 
 func addHouse(s Service) gin.HandlerFunc {
+	var h Houses
 	return func(c *gin.Context) {
-		var h Houses
 		if c.BindJSON(&h) == nil {
-			c.JSON(http.StatusOK, gin.H{
-				"houses": s.AddHouse(h),
+			id,err := s.AddHouse(h)
+			if err != nil {
+				c.JSON(http.StatusBadRequest,gin.H{
+					"error": "Bad Request",
+				})
+			return
+    }
+		c.JSON(http.StatusOK, gin.H{
+			"id": id,
 			})
 		}
 	}
@@ -84,10 +100,22 @@ func getById(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		i, err := strconv.Atoi(c.Param("ID"))
 		if err != nil {
-			panic(err)
+			c.JSON(http.StatusBadRequest,gin.H{
+				"error": "id debe ser numero",
+			})
+		}
+		var house Houses 
+		house.Id = -1
+		fmt.Println(house)
+		house, err = s.FindByID(i)
+		if (house.Id == 0) {
+			c.JSON(http.StatusOK, gin.H{
+				"houses": "No existe registro con el id solicitado",
+			})		
+			return	
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"houses": s.FindByID(i),
+			"houses": house,
 		})
 	}
 }
@@ -96,12 +124,25 @@ func getById(s Service) gin.HandlerFunc {
 func deleteById(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		i, err := strconv.Atoi(c.Param("ID"))
-		if err != nil {
-			panic(err)
+    	if err != nil {
+        	c.JSON(http.StatusBadRequest,gin.H{
+				"error": "id debe ser numero",
+			})
+    	    return
+		}
+		 
+		rows, err := s.DeleteByID(i)
+		if (rows == 0) {
+			c.JSON(http.StatusBadRequest,gin.H{
+				"error": "no se pudo eleminar",
+				"err" : err,
+			})
+			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"houses": s.DeleteByID(i),
+			"borrado registro id": i,
 		})
+		return
 	}
 }
 
@@ -109,11 +150,22 @@ func setSoldById(s Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		i, err := strconv.Atoi(c.Param("ID"))
 		if err != nil {
-			panic(err)
+			c.JSON(http.StatusBadRequest,gin.H{
+				"error": "id debe ser numero",
+			})
+		}
+		rows, err := s.SetSoldByID(i)
+		if (rows == 0) {
+			c.JSON(http.StatusBadRequest,gin.H{
+				"error": "no se pudo actualizar como vendido",
+				"err" : err,
+			})
+			return
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"houses": s.SetSoldByID(i),
+			"actualizado registro id": i,
 		})
+		return
 	}
 }
 // Register ...
